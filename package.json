@@ -1,0 +1,50 @@
+{
+  "name": "feishu-cloudflare-adapter",
+  "version": "0.1.0",
+  "description": "Fetch-native Feishu/Lark webhook adapter for Cloudflare Workers and edge runtimes",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "worker:check": "wrangler deploy --dry-run --config smoke/wrangler.jsonc",
+    "check": "npm test && npm run worker:check && npm pack --dry-run",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shire31/feishu-cloudflare-adapter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shire31/feishu-cloudflare-adapter/issues"
+  },
+  "homepage": "https://github.com/Shire31/feishu-cloudflare-adapter#readme",
+  "keywords": [
+    "feishu",
+    "lark",
+    "cloudflare-workers",
+    "webhook",
+    "fetch",
+    "agent"
+  ],
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260818.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.124.0"
+  }
+}
