@@ -1,6 +1,12 @@
 // Fetch-native Feishu/Lark webhook verification, decryption, and event extraction.
 
 const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
+const CONFIG_KEYS = new Set([
+  "verificationToken",
+  "encryptKey",
+  "maxBodyBytes",
+  "maxTimestampSkewSeconds",
+]);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -371,14 +377,42 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function validateConfig(config: FeishuWebhookConfig): void {
+  if (typeof config !== "object" || config === null || Array.isArray(config)) {
+    throw new TypeError("Feishu webhook config must be an object");
+  }
+
+  const unknownKeys = Object.keys(config).filter((key) => !CONFIG_KEYS.has(key));
+  if (unknownKeys.length > 0) {
+    throw new TypeError(`Unknown Feishu webhook config option: ${unknownKeys.join(", ")}`);
+  }
+
+  if (
+    config.verificationToken !== undefined &&
+    (typeof config.verificationToken !== "string" || config.verificationToken.length === 0)
+  ) {
+    throw new TypeError("verificationToken must be a non-empty string when provided");
+  }
+
+  if (
+    config.encryptKey !== undefined &&
+    (typeof config.encryptKey !== "string" || config.encryptKey.length === 0)
+  ) {
+    throw new TypeError("encryptKey must be a non-empty string when provided");
+  }
+
   const maxBodyBytes = config.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
   if (!Number.isSafeInteger(maxBodyBytes) || maxBodyBytes <= 0) {
     throw new TypeError("maxBodyBytes must be a positive safe integer");
   }
+
   if (
     config.maxTimestampSkewSeconds !== undefined &&
     (!Number.isFinite(config.maxTimestampSkewSeconds) || config.maxTimestampSkewSeconds < 0)
   ) {
     throw new TypeError("maxTimestampSkewSeconds must be a non-negative finite number");
+  }
+
+  if (config.maxTimestampSkewSeconds !== undefined && !config.encryptKey) {
+    throw new TypeError("maxTimestampSkewSeconds requires encryptKey so requests are signed");
   }
 }

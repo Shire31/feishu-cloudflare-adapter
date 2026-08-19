@@ -171,13 +171,13 @@ For a production webhook:
 
 - configure both a Verification Token and Encrypt Key;
 - store them as Worker secrets, never source-controlled variables;
-- keep `maxTimestampSkewSeconds` reasonably small if your callback traffic can tolerate it;
+- keep `maxTimestampSkewSeconds` reasonably small if your callback traffic can tolerate it; it requires `encryptKey` because replay rejection is meaningful only for signed requests;
 - use `event.eventId` as a downstream idempotency key because Feishu may retry callbacks;
 - acknowledge the webhook quickly and perform long-running agent work durably;
 - keep the raw request body intact until signature verification is complete;
 - never log decrypted event bodies indiscriminately because they can contain user content and identifiers.
 
-The adapter defaults to a 1 MiB maximum request body. Override `maxBodyBytes` only when you have a concrete need.
+The adapter defaults to a 1 MiB maximum request body. Override `maxBodyBytes` only when you have a concrete need. Configuration is intentionally strict: unknown option names throw a `TypeError` instead of being silently ignored, because a typo in a security option must not weaken verification unnoticed.
 
 ## API
 

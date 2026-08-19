@@ -174,6 +174,32 @@ test("body size is enforced while streaming", async () => {
   );
 });
 
+test("unknown config keys fail fast instead of silently weakening security", async () => {
+  await assert.rejects(
+    () =>
+      parseFeishuWebhookRequest(jsonRequest({ type: "noop" }), {
+        verificationToken,
+        maxRequestAgeSeconds: 60,
+      }),
+    (error) =>
+      error instanceof TypeError &&
+      error.message === "Unknown Feishu webhook config option: maxRequestAgeSeconds",
+  );
+});
+
+test("replay-window configuration requires signed requests", async () => {
+  await assert.rejects(
+    () =>
+      parseFeishuWebhookRequest(jsonRequest({ type: "noop" }), {
+        verificationToken,
+        maxTimestampSkewSeconds: 60,
+      }),
+    (error) =>
+      error instanceof TypeError &&
+      error.message === "maxTimestampSkewSeconds requires encryptKey so requests are signed",
+  );
+});
+
 test("known errors convert to small safe HTTP responses", async () => {
   const response = createFeishuWebhookErrorResponse(
     new FeishuWebhookError(401, "invalid_signature", "secret diagnostic"),
